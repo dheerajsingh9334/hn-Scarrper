@@ -15,9 +15,15 @@ connectDB();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Clean CLIENT_URL to remove trailing slashes which break CORS exact string matching
+let clientUrl = process.env.CLIENT_URL || '*';
+if (clientUrl !== '*' && clientUrl.endsWith('/')) {
+  clientUrl = clientUrl.slice(0, -1);
+}
+
 // Middleware
 app.use(cors({
-  origin: process.env.CLIENT_URL || '*',
+  origin: clientUrl,
   credentials: true,
 }));
 app.use(express.json());
