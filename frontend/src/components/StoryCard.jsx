@@ -44,9 +44,18 @@ const StoryCard = ({ story }) => {
       </div>
       
       <div className="story-footer">
-        <a href={story.url} target="_blank" rel="noopener noreferrer" className="btn btn-outline" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', padding: '0.4rem 0.8rem' }}>
-          <ExternalLink size={14} /> Read
-        </a>
+        <button 
+          onClick={() => {
+            if (user) {
+              window.open(story.url, '_blank', 'noopener,noreferrer');
+            } else {
+              navigate('/login');
+            }
+          }}
+          className="btn btn-outline"
+        >
+          <ExternalLink size={14} style={{ marginRight: '6px' }} /> Read More
+        </button>
         <button 
           className={`bookmark-btn ${isBookmarked ? 'active' : ''}`}
           onClick={handleBookmark}
