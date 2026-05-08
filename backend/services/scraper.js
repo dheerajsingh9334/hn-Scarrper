@@ -1,5 +1,4 @@
 const axios = require("axios");
-const cheerio = require("cheerio");
 const dns = require("dns");
 
 const Story = require("../models/Story");
@@ -9,62 +8,43 @@ dns.setDefaultResultOrder("ipv4first");
 
 const scrapeHackerNews = async (limit = 30) => {
   try {
-    console.log(`[Scraper] Starting scrape for up to ${limit} stories...`);
-    const stories = [];
-    let page = 1;
+    console.log(`[Scraper] Starting scrape for up to ${limit} stories using official API...`);
+    
+    // Fetch top story IDs
+    const { data: topStoriesIds } = await axios.get(
+      "https://hacker-news.firebaseio.com/v0/topstories.json",
+      { timeout: 10000, family: 4 }
+    );
 
-    while (stories.length < limit) {
+    if (!topStoriesIds || topStoriesIds.length === 0) {
+      console.log("[Scraper] No stories found from API.");
+      return [];
+    }
+
+    const idsToFetch = topStoriesIds.slice(0, limit);
+    const stories = [];
+
+    // Fetch individual story details
+    // Using a simple loop with a small delay to be polite to the API, though Firebase handles concurrents well.
+    for (const id of idsToFetch) {
       try {
-        if (page > 1) {
-          // Add a 1-second delay between pages to avoid 429 Too Many Requests
-          await new Promise(resolve => setTimeout(resolve, 1000));
-        }
-        
-        const response = await axios.get(
-          `https://news.ycombinator.com/?p=${page}`,
-          {
-            timeout: 10000,
-            family: 4,
-            headers: {
-              "User-Agent":
-                "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120 Safari/537.36",
-            },
-          }
+        const { data: storyData } = await axios.get(
+          `https://hacker-news.firebaseio.com/v0/item/${id}.json`,
+          { timeout: 5000, family: 4 }
         );
 
-        const $ = cheerio.load(response.data);
-        const items = $(".athing").toArray();
-
-        if (items.length === 0) break; // no more items
-
-        for (const element of items) {
-          if (stories.length >= limit) break;
-
-          const hnId = $(element).attr("id");
-          const titleElement = $(element).find(".titleline > a").first();
-          const title = titleElement.text();
-          const url = titleElement.attr("href");
-
-          const subtext = $(element).next();
-          const pointsText = subtext.find(".score").text();
-          const points = pointsText ? parseInt(pointsText.replace(" points", ""), 10) : 0;
-          const author = subtext.find(".hnuser").text() || "anonymous";
-          const postedAt = subtext.find(".age").attr("title") || subtext.find(".age").text();
-
+        if (storyData && storyData.type === 'story') {
           stories.push({
-            hnId,
-            title,
-            url: url && url.startsWith("item?id=") ? `https://news.ycombinator.com/${url}` : url,
-            points,
-            author,
-            postedAt,
+            hnId: storyData.id.toString(),
+            title: storyData.title,
+            url: storyData.url || `https://news.ycombinator.com/item?id=${storyData.id}`,
+            points: storyData.score || 0,
+            author: storyData.by || "anonymous",
+            postedAt: new Date(storyData.time * 1000).toLocaleString(),
           });
         }
-
-        page++;
       } catch (err) {
-        console.error(`[Scraper] Failed on page ${page}:`, err.response ? `HTTP ${err.response.status}` : err.message);
-        break; // Stop fetching more pages if we hit a rate limit (429) or other error
+        console.error(`[Scraper] Failed to fetch story ${id}:`, err.message);
       }
     }
 
