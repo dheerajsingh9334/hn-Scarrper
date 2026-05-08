@@ -4,7 +4,7 @@ import { AuthContext } from '../context/AuthContext';
 import { LogOut, Bookmark, User, Terminal } from 'lucide-react';
 
 const Navbar = () => {
-  const { user, logout } = useContext(AuthContext);
+  const { user, logout, loading } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -20,7 +20,9 @@ const Navbar = () => {
       </Link>
       <div className="navbar-links">
         <Link to="/feed" className="nav-link">Feed</Link>
-        {user ? (
+        {loading ? (
+          <span className="nav-link" style={{ opacity: 0.5 }}>Connecting...</span>
+        ) : user ? (
           <>
             <span className="nav-link" style={{ cursor: 'default' }}>
               <User size={18} style={{ display: 'inline', marginRight: '4px', verticalAlign: 'middle' }} />

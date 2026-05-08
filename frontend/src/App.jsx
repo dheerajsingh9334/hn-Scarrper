@@ -11,14 +11,6 @@ import { AuthContext } from './context/AuthContext';
 function App() {
   const { user, loading } = useContext(AuthContext);
 
-  if (loading) {
-    return (
-      <div className="loader">
-        <div className="spinner"></div>
-      </div>
-    );
-  }
-
   return (
     <>
       <Navbar />
@@ -26,9 +18,18 @@ function App() {
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/feed" element={<Home />} />
-          <Route path="/login" element={!user ? <Login /> : <Navigate to="/feed" />} />
-          <Route path="/register" element={!user ? <Register /> : <Navigate to="/feed" />} />
-          <Route path="/bookmarks" element={user ? <Bookmarks /> : <Navigate to="/login" />} />
+          <Route path="/login" element={
+            loading ? <div className="loader"><div className="spinner"></div></div> :
+            (!user ? <Login /> : <Navigate to="/feed" />)
+          } />
+          <Route path="/register" element={
+            loading ? <div className="loader"><div className="spinner"></div></div> :
+            (!user ? <Register /> : <Navigate to="/feed" />)
+          } />
+          <Route path="/bookmarks" element={
+            loading ? <div className="loader"><div className="spinner"></div></div> :
+            (user ? <Bookmarks /> : <Navigate to="/login" />)
+          } />
         </Routes>
       </div>
     </>
