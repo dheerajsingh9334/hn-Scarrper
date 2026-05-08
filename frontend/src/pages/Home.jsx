@@ -45,10 +45,22 @@ const Home = () => {
     }
   };
 
-  const loadMore = () => {
-    const nextPage = page + 1;
-    setPage(nextPage);
-    fetchStories(nextPage, true);
+  const prevPage = () => {
+    if (page > 1) {
+      const newPage = page - 1;
+      setPage(newPage);
+      fetchStories(newPage, false);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const nextPage = () => {
+    if (hasMore) {
+      const newPage = page + 1;
+      setPage(newPage);
+      fetchStories(newPage, false);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   return (
@@ -99,13 +111,28 @@ const Home = () => {
               <StoryCard key={story._id} story={story} />
             ))}
           </div>
-          {hasMore && (
-            <div style={{ textAlign: 'center', marginTop: '3rem' }}>
-              <button onClick={loadMore} className="btn btn-outline" style={{ padding: '0.8rem 2rem' }}>
-                Load More
-              </button>
-            </div>
-          )}
+          
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '3rem' }}>
+            <button 
+              onClick={prevPage} 
+              disabled={page === 1}
+              className="btn btn-outline" 
+              style={{ padding: '0.8rem 2rem', opacity: page === 1 ? 0.5 : 1 }}
+            >
+              Previous
+            </button>
+            <span style={{ display: 'flex', alignItems: 'center', color: 'var(--text-secondary)' }}>
+              Page {page}
+            </span>
+            <button 
+              onClick={nextPage} 
+              disabled={!hasMore}
+              className="btn btn-outline" 
+              style={{ padding: '0.8rem 2rem', opacity: !hasMore ? 0.5 : 1 }}
+            >
+              Next
+            </button>
+          </div>
         </>
       )}
     </div>

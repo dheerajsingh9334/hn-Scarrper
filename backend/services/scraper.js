@@ -14,48 +14,58 @@ const scrapeHackerNews = async (limit = 30) => {
     let page = 1;
 
     while (stories.length < limit) {
-      const response = await axios.get(
-        `https://news.ycombinator.com/?p=${page}`,
-        {
-          timeout: 10000,
-          family: 4,
-          headers: {
-            "User-Agent":
-              "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120 Safari/537.36",
-          },
+      try {
+        if (page > 1) {
+          // Add a 1-second delay between pages to avoid 429 Too Many Requests
+          await new Promise(resolve => setTimeout(resolve, 1000));
         }
-      );
+        
+        const response = await axios.get(
+          `https://news.ycombinator.com/?p=${page}`,
+          {
+            timeout: 10000,
+            family: 4,
+            headers: {
+              "User-Agent":
+                "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120 Safari/537.36",
+            },
+          }
+        );
 
-      const $ = cheerio.load(response.data);
-      const items = $(".athing").toArray();
+        const $ = cheerio.load(response.data);
+        const items = $(".athing").toArray();
 
-      if (items.length === 0) break; // no more items
+        if (items.length === 0) break; // no more items
 
-      for (const element of items) {
-        if (stories.length >= limit) break;
+        for (const element of items) {
+          if (stories.length >= limit) break;
 
-        const hnId = $(element).attr("id");
-        const titleElement = $(element).find(".titleline > a").first();
-        const title = titleElement.text();
-        const url = titleElement.attr("href");
+          const hnId = $(element).attr("id");
+          const titleElement = $(element).find(".titleline > a").first();
+          const title = titleElement.text();
+          const url = titleElement.attr("href");
 
-        const subtext = $(element).next();
-        const pointsText = subtext.find(".score").text();
-        const points = pointsText ? parseInt(pointsText.replace(" points", ""), 10) : 0;
-        const author = subtext.find(".hnuser").text() || "anonymous";
-        const postedAt = subtext.find(".age").attr("title") || subtext.find(".age").text();
+          const subtext = $(element).next();
+          const pointsText = subtext.find(".score").text();
+          const points = pointsText ? parseInt(pointsText.replace(" points", ""), 10) : 0;
+          const author = subtext.find(".hnuser").text() || "anonymous";
+          const postedAt = subtext.find(".age").attr("title") || subtext.find(".age").text();
 
-        stories.push({
-          hnId,
-          title,
-          url: url && url.startsWith("item?id=") ? `https://news.ycombinator.com/${url}` : url,
-          points,
-          author,
-          postedAt,
-        });
+          stories.push({
+            hnId,
+            title,
+            url: url && url.startsWith("item?id=") ? `https://news.ycombinator.com/${url}` : url,
+            points,
+            author,
+            postedAt,
+          });
+        }
+
+        page++;
+      } catch (err) {
+        console.error(`[Scraper] Failed on page ${page}:`, err.response ? `HTTP ${err.response.status}` : err.message);
+        break; // Stop fetching more pages if we hit a rate limit (429) or other error
       }
-
-      page++;
     }
 
     if (stories.length > 0) {
