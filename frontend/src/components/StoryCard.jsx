@@ -17,12 +17,16 @@ const StoryCard = ({ story }) => {
       return;
     }
     
+    // Optimistic UI update: instantly toggle the bookmark visually
+    toggleBookmarkContext(story._id);
     setLoading(true);
+    
     try {
       await api.post(`/stories/${story._id}/bookmark`);
-      toggleBookmarkContext(story._id);
     } catch (error) {
       console.error('Failed to toggle bookmark', error);
+      // Revert the UI update if the API call fails
+      toggleBookmarkContext(story._id);
     } finally {
       setLoading(false);
     }
