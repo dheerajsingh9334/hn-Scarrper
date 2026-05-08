@@ -9,38 +9,38 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const fetchUser = async () => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        try {
-          const { data } = await api.get('/auth/me');
-          setUser(data);
-        } catch (error) {
-          console.error('Failed to fetch user', error);
-          localStorage.removeItem('token');
-        }
+      try {
+        const { data } = await api.get('/auth/me');
+        setUser(data);
+      } catch (error) {
+        // If 401 or network error, it means no valid cookie
+        setUser(null);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     fetchUser();
   }, []);
 
   const login = async (username, password) => {
-    const { data } = await api.post('/auth/login', { username, password });
-    localStorage.setItem('token', data.token);
+    await api.post('/auth/login', { username, password });
     const userRes = await api.get('/auth/me');
     setUser(userRes.data);
   };
 
   const register = async (username, password) => {
-    const { data } = await api.post('/auth/register', { username, password });
-    localStorage.setItem('token', data.token);
+    await api.post('/auth/register', { username, password });
     const userRes = await api.get('/auth/me');
     setUser(userRes.data);
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
+  const logout = async () => {
+    try {
+      await api.post('/auth/logout');
+    } catch (error) {
+      console.error('Logout failed', error);
+    }
     setUser(null);
   };
 
