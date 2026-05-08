@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
+import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Bookmarks from './pages/Bookmarks';
@@ -23,9 +24,10 @@ function App() {
       <Navbar />
       <div className="container">
         <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={!user ? <Login /> : <Navigate to="/" />} />
-          <Route path="/register" element={!user ? <Register /> : <Navigate to="/" />} />
+          <Route path="/" element={<Landing />} />
+          <Route path="/feed" element={<Home />} />
+          <Route path="/login" element={!user ? <Login /> : <Navigate to="/feed" />} />
+          <Route path="/register" element={!user ? <Register /> : <Navigate to="/feed" />} />
           <Route path="/bookmarks" element={user ? <Bookmarks /> : <Navigate to="/login" />} />
         </Routes>
       </div>

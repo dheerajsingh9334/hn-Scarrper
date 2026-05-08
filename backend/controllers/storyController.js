@@ -62,7 +62,8 @@ const toggleBookmark = async (req, res) => {
 
 const triggerScrape = async (req, res) => {
   try {
-    const stories = await scrapeHackerNews();
+    const limit = req.body.limit ? parseInt(req.body.limit) : 30;
+    const stories = await scrapeHackerNews(limit);
     res.json({ message: 'Scrape successful', storiesCount: stories.length });
   } catch (error) {
     res.status(500).json({ message: 'Scrape failed' });

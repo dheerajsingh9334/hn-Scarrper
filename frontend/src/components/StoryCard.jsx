@@ -32,7 +32,12 @@ const StoryCard = ({ story }) => {
     <div className="story-card">
       <div>
         <h3 className="story-title">
-          <a href={story.url} target="_blank" rel="noopener noreferrer">
+          <a href={story.url} target="_blank" rel="noopener noreferrer" onClick={(e) => {
+    if (!user) {
+      e.preventDefault();
+      navigate("/login");
+    }
+  }}>
             {story.title}
           </a>
         </h3>

@@ -19,6 +19,7 @@ const Navbar = () => {
         HN Scraper
       </Link>
       <div className="navbar-links">
+        <Link to="/feed" className="nav-link">Feed</Link>
         {user ? (
           <>
             <span className="nav-link" style={{ cursor: 'default' }}>
