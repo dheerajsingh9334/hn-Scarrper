@@ -1,7 +1,10 @@
 import { Link } from 'react-router-dom';
 import { Terminal, ArrowRight, Zap, Shield, Globe } from 'lucide-react';
+import { useContext } from 'react';
+import { AuthContext } from '../context/AuthContext';
 
 const Landing = () => {
+  const { user } = useContext(AuthContext);
   return (
     <div className="landing-container" style={{ textAlign: 'center', padding: '4rem 0' }}>
       <div className="hero-section" style={{ marginBottom: '5rem' }}>
@@ -40,9 +43,11 @@ const Landing = () => {
           <Link to="/feed" className="btn btn-primary" style={{ padding: '1rem 2.5rem', fontSize: '1.1rem' }}>
             Go to Feed <ArrowRight size={18} style={{ marginLeft: '8px' }} />
           </Link>
-          <Link to="/register" className="btn btn-outline" style={{ padding: '1rem 2.5rem', fontSize: '1.1rem' }}>
-            Create Account
-          </Link>
+          {!user && (
+            <Link to="/register" className="btn btn-outline" style={{ padding: '1rem 2.5rem', fontSize: '1.1rem' }}>
+              Create Account
+            </Link>
+          )}
         </div>
       </div>
 
